@@ -15,41 +15,32 @@ namespace ClearBank.DeveloperTest.Services
 
             if (account is null)
                 return result;
-
-            // TODO: Make result success should default to false - this will simply the code below from setting success = false for every failed senario
-            result.Success = true;
             
             // TODO: Move out account validation into different strategy pattern
             switch (request.PaymentScheme)
             {
                 case PaymentScheme.Bacs:
    
-                    if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Bacs))
+                    if (account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Bacs))
                     {
-                        result.Success = false;
+                        result.Success = true;
                     }
                     break;
 
                 case PaymentScheme.FasterPayments:
-                    if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments))
+                    if (account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments)
+                        && account.Balance >= request.Amount)
                     {
-                        result.Success = false;
-                    }
-                    else if (account.Balance < request.Amount)
-                    {
-                        result.Success = false;
+                        result.Success = true;
                     }
                     break;
 
                 case PaymentScheme.Chaps:
   
-                    if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Chaps))
+                    if (account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Chaps)
+                        && account.Status == AccountStatus.Live)
                     {
-                        result.Success = false;
-                    }
-                    else if (account.Status != AccountStatus.Live)
-                    {
-                        result.Success = false;
+                        result.Success = true;
                     }
                     break;
             }
