@@ -1,23 +1,22 @@
-﻿using ClearBank.DeveloperTest.Config;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using ClearBank.DeveloperTest.Config;
 using ClearBank.DeveloperTest.Data;
 using Microsoft.Extensions.Options;
 
 namespace ClearBank.DeveloperTest.Services
 {
-    public class AccountDataStoreFactory : IAccountDataStoreFactory
+    public class AccountDataStoreFactory(IOptions<DataStoreFactoryOptions> options, IEnumerable<IAccountDataStore> accountDataStores) : IAccountDataStoreFactory
     {
-        private readonly DataStoreFactoryOptions _options;
-        public AccountDataStoreFactory(IOptions<DataStoreFactoryOptions> options)
+        public IAccountDataStore Get()
         {
-            _options = options.Value;
-        }
+            if (options.Value?.DataStoreType == DataStoreType.Backup)
+               return accountDataStores.FirstOrDefault(x => x.Type == DataStoreType.Backup) 
+                    ?? throw new ApplicationException("Could not find backup account datastore");
 
-        public IAccountDataStore Create()
-        {
-            if (_options.DataStoreType.Equals(DataStoreType.Backup))
-                return new BackupAccountDataStore();
-            
-            return new AccountDataStore();
+            return accountDataStores.FirstOrDefault(x => x.Type == DataStoreType.Main)
+                 ?? throw new ApplicationException("Could not find main datastore");
         }
     }
 }

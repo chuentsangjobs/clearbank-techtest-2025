@@ -1,10 +1,12 @@
-﻿using ClearBank.DeveloperTest.Types;
+﻿using ClearBank.DeveloperTest.Config;
+using ClearBank.DeveloperTest.Types;
 
 namespace ClearBank.DeveloperTest.Data
 {
-    // TODO: Implement interface account datastore interface
     public class AccountDataStore : IAccountDataStore
     {
+        public DataStoreType Type => DataStoreType.Main;
+
         public Account GetAccount(string accountNumber)
         {
             // Access database to retrieve account, code removed for brevity 

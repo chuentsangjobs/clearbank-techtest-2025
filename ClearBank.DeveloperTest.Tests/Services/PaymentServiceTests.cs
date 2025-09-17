@@ -2,6 +2,7 @@
 using ClearBank.DeveloperTest.Config;
 using ClearBank.DeveloperTest.Data;
 using ClearBank.DeveloperTest.Services;
+using ClearBank.DeveloperTest.Services.AccountPaymentValidation;
 using ClearBank.DeveloperTest.Types;
 using FluentAssertions;
 using NSubstitute;
@@ -21,7 +22,15 @@ namespace ClearBank.DeveloperTest.Tests.Services
             var options = new DataStoreFactoryOptions { DataStoreType = DataStoreType.Main };
             _accountDataStoreFactory = Substitute.For<IAccountDataStoreFactory>();
             _accountDataStore = Substitute.For<IAccountDataStore>();
-            _sut = new PaymentService(_accountDataStoreFactory);
+            var validationStrategies = new IAccountValidationStrategy[] 
+            { 
+                new BacsValidationStrategy(), 
+                new FasterPaymentsValidationStrategy(), 
+                new ChapsValidationStrategy() 
+            };
+            var accountValidationContext = new PaymentAccountValidationContext(validationStrategies);
+            _sut = new PaymentService(_accountDataStoreFactory, accountValidationContext);
+            // TODO: move out payment validation scheme tests into separate files under each strategy
         }
 
         [Theory]
@@ -33,7 +42,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
             request.PaymentScheme = PaymentScheme.Bacs;
             account.AllowedPaymentSchemes = allowedPaymentScheme;
             var expectedAccountBalance = account.Balance;
-            _accountDataStoreFactory.Create()
+            _accountDataStoreFactory.Get()
                 .Returns(_accountDataStore);
             _accountDataStore.GetAccount(request.DebtorAccountNumber)
                 .ReturnsNull();
@@ -57,7 +66,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
             request.PaymentScheme = PaymentScheme.Bacs;
             account.AllowedPaymentSchemes = AllowedPaymentSchemes.Bacs;
             var expectedAccountBalance = account.Balance - request.Amount;
-            _accountDataStoreFactory.Create()
+            _accountDataStoreFactory.Get()
                 .Returns(_accountDataStore);
             _accountDataStore.GetAccount(request.DebtorAccountNumber)
                 .Returns(account);
@@ -81,7 +90,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
             request.PaymentScheme = PaymentScheme.Bacs;
             account.AllowedPaymentSchemes = allowedPaymentScheme;
             var expectedAccountBalance = account.Balance;
-            _accountDataStoreFactory.Create()
+            _accountDataStoreFactory.Get()
                 .Returns(_accountDataStore);
             _accountDataStore.GetAccount(request.DebtorAccountNumber)
                 .Returns(account);
@@ -105,7 +114,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
             account.AllowedPaymentSchemes = AllowedPaymentSchemes.FasterPayments;
             account.Balance = request.Amount + 10; // Ensure account has enough money
             var expectedAccountBalance = account.Balance - request.Amount;
-            _accountDataStoreFactory.Create()
+            _accountDataStoreFactory.Get()
                 .Returns(_accountDataStore);
             _accountDataStore.GetAccount(request.DebtorAccountNumber)
                 .Returns(account);
@@ -129,7 +138,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
             account.AllowedPaymentSchemes = AllowedPaymentSchemes.FasterPayments;
             account.Balance = request.Amount - 1; // Ensure account does not have enough money
             var expectedAccountBalance = account.Balance;
-            _accountDataStoreFactory.Create()
+            _accountDataStoreFactory.Get()
                 .Returns(_accountDataStore);
             _accountDataStore.GetAccount(request.DebtorAccountNumber)
                 .Returns(account);
@@ -154,7 +163,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
             account.AllowedPaymentSchemes = allowedPaymentScheme;
             account.Balance = request.Amount + 10; // Ensure account has enough money
             var expectedAccountBalance = account.Balance;
-            _accountDataStoreFactory.Create()
+            _accountDataStoreFactory.Get()
                 .Returns(_accountDataStore);
             _accountDataStore.GetAccount(request.DebtorAccountNumber)
                 .Returns(account);
@@ -178,7 +187,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
             account.AllowedPaymentSchemes = AllowedPaymentSchemes.Chaps;
             account.Status = AccountStatus.Live;
             var expectedAccountBalance = account.Balance - request.Amount;
-            _accountDataStoreFactory.Create()
+            _accountDataStoreFactory.Get()
                 .Returns(_accountDataStore);
             _accountDataStore.GetAccount(request.DebtorAccountNumber)
                 .Returns(account);
@@ -203,7 +212,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
             account.AllowedPaymentSchemes = AllowedPaymentSchemes.Chaps;
             account.Status = accountStatus;
             var expectedAccountBalance = account.Balance;
-            _accountDataStoreFactory.Create()
+            _accountDataStoreFactory.Get()
                 .Returns(_accountDataStore);
             _accountDataStore.GetAccount(request.DebtorAccountNumber)
                 .Returns(account);

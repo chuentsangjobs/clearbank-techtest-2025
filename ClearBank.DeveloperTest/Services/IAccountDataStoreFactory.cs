@@ -4,7 +4,6 @@ namespace ClearBank.DeveloperTest.Services
 {
     public interface IAccountDataStoreFactory
     {
-        IAccountDataStore Create();
-
+        IAccountDataStore Get();
     }
 }
