@@ -31,4 +31,4 @@ You should plan to spend around 1 to 3 hours to complete the exercise.
 1. Write some tests to capture the main logic of payment service before attempting refactor
 
 ## TODOs
-Given more time I would have written unit tests for each validation strategy class whilst refactoring out tests in PaymentServiceTests.cs
+Given more time I would have refactoring out tests in PaymentServiceTests.cs so we don't duplicate strategies unit testing
